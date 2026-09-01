@@ -405,7 +405,7 @@ select.in{background-image:none}
 .logoutbtn:hover{border-color:var(--ink-soft); background:var(--cream)}
 #appRoot.hidden{display:none}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -630,6 +630,12 @@ const P = Object.fromEntries(PEOPLE.map(p=>[p.id,p]));
 const KEY = 'purrfect:v1';
 const SUPABASE_URL = 'https://fmpbhmaqbtofbhsbxptv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcGJobWFxYnRvZmJoc2J4cHR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMjI2MjIsImV4cCI6MjEwMzU5ODYyMn0.lUSg0n7jJqy-0h4n2dCAqBvqrwMWuItMNRbMLYhBmto';
+if (typeof supabase === 'undefined'){
+  document.getElementById('authSub').textContent = 'Não foi possível carregar a biblioteca do Supabase. Verifica a tua ligação à Internet e recarrega a página.';
+  document.getElementById('authForm').classList.add('hidden');
+  document.getElementById('authSwitchBtn').parentElement.classList.add('hidden');
+  throw new Error('supabase-js não carregou (CDN bloqueado ou sem Internet)');
+}
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let tasks = [];
