@@ -155,6 +155,9 @@ button{cursor:pointer;border:none;background:none}
 .bdtag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;
   border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:1px 8px;margin-left:7px;
   vertical-align:1px;white-space:nowrap}
+.bdmonth{padding:14px 16px 6px;font-size:11.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted)}
+.bdmonth:first-child{padding-top:6px}
 .bdrow{display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--line-soft);
   width:100%;text-align:left;transition:background .13s}
 .bdrow:hover{background:var(--cream)}
@@ -1085,7 +1088,16 @@ function renderBirthdays(){
     return;
   }
 
+  let lastMonthKey = null;
   list.forEach(({b,n}) => {
+    const monthKey = n.date.getFullYear()+'-'+n.date.getMonth();
+    if (monthKey !== lastMonthKey){
+      lastMonthKey = monthKey;
+      const hdr = document.createElement('div');
+      hdr.className = 'bdmonth';
+      hdr.textContent = n.date.toLocaleDateString('pt-PT', {month:'long'});
+      box.appendChild(hdr);
+    }
     const age = ageOn(b, n.year);
     const row = document.createElement('button');
     row.className = 'bdrow';
