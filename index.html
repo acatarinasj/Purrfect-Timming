@@ -566,7 +566,7 @@ select.in{background-image:none}
     </div>
 
     <div class="f">
-      <label for="fTitle">Tarefa</label>
+      <label for="fTitle" id="fTitleLabel">Tarefa</label>
       <input class="in" id="fTitle" placeholder="Ex.: Buscar a Alice ao ballet" autocomplete="off">
     </div>
 
@@ -1349,6 +1349,8 @@ function syncSheet(){
   const bday = draft.kind === 'birthday';
   document.getElementById('fNoYear').setAttribute('aria-pressed', bday && !draft.year);
   document.getElementById('fTitle').placeholder = bday ? 'Ex.: Avó Teresa' : 'Ex.: Buscar a Alice ao ballet';
+  document.getElementById('fTitleLabel').textContent = bday ? 'Nome' : (routine ? 'Bloco' : 'Tarefa');
+  document.getElementById('fSave').textContent = bday ? 'Guardar aniversário' : (routine ? 'Guardar bloco' : 'Guardar tarefa');
   document.getElementById('fDateLabel').textContent = bday ? 'Data de nascimento' : 'Data';
   document.getElementById('fDateWrap').classList.toggle('hidden', routine);
   document.getElementById('fTimeWrap').classList.toggle('hidden', bday);
