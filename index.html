@@ -31,7 +31,7 @@
   --slot:44px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{
   background:var(--beige-line);
   color:var(--ink);
@@ -39,16 +39,21 @@ body{
   font-size:15px;
   line-height:1.45;
   -webkit-font-smoothing:antialiased;
+  overflow:hidden;
 }
 /* app is always presented at phone width, like a mobile app, even on a
    desktop browser; contain:layout makes this the containing block for
-   position:fixed descendants (modal veil, fab, auth screen), and
+   position:fixed descendants (modal veil, fab, auth screen). The frame
+   is pinned to the exact viewport height (not min-height) and scrolls
+   internally, so those fixed descendants land relative to what's
+   actually on screen instead of the bottom of the full page content.
    container-type lets the breakpoints below key off this width instead
    of the real viewport, so the layout never switches to a desktop mode */
 #appFrame{
-  max-width:480px; margin:0 auto; min-height:100vh; min-height:100dvh;
+  max-width:480px; margin:0 auto; height:100vh; height:100dvh;
   background:var(--cream); position:relative; contain:layout;
   container-type:inline-size; container-name:appframe;
+  overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
   padding-bottom:env(safe-area-inset-bottom);
 }
 @media (min-width:481px){
