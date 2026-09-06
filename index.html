@@ -247,6 +247,9 @@ button{cursor:pointer;border:none;background:none}
 .wev .wn2{font-size:11.5px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wev.done{background:var(--cream)}
 .wev.done .wn2{text-decoration:line-through;color:var(--muted)}
+.wev-fill{border-color:rgba(0,0,0,.1)}
+.wev-fill .wt{color:rgba(255,255,255,.85)}
+.wev-fill .wn2{color:#fff}
 .wnow{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--terra);z-index:3;pointer-events:none}
 
 .scroller{position:relative;max-height:min(62vh,620px);overflow-y:auto;overscroll-behavior:contain}
@@ -1064,13 +1067,13 @@ function renderTimetable(){
     })).forEach(it => {
       const t = it.t;
       const el = document.createElement('button');
-      el.className = 'wev';
+      el.className = 'wev wev-fill';
       el.style.top = ((it.start - lo)/30*WSLOT + 1 + TOPPAD) + 'px';
       el.style.height = Math.max(20, (it.end - it.start)/30*WSLOT - 2) + 'px';
       el.style.left = 'calc(' + (it.col * (100/it.total)) + '% + 2px)';
       el.style.width = 'calc(' + (100/it.total) + '% - 5px)';
-      el.innerHTML = '<span class="spine" style="background:'+spineOf(t.people)+'"></span>'+
-        '<span class="wb"><span class="wt">'+t.time+'</span><span class="wn2">'+esc(t.title)+'</span></span>';
+      el.style.background = spineOf(t.people);
+      el.innerHTML = '<span class="wb"><span class="wt">'+t.time+'</span><span class="wn2">'+esc(t.title)+'</span></span>';
       el.title = t.title + ' · ' + t.people.map(p => P[p] ? P[p].name : p).join(', ');
       el.addEventListener('click', ev => { ev.stopPropagation(); openSheet(t.id); });
       col.appendChild(el);
