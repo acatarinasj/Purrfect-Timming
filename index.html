@@ -148,6 +148,8 @@ button{cursor:pointer;border:none;background:none}
 .dayhead .spacer{flex:1}
 .ghost{border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:500;color:var(--ink-soft);background:var(--paper)}
 .ghost:hover{border-color:var(--ink-soft);background:var(--cream)}
+.ghost.danger{color:#B0413E;border-color:rgba(176,65,62,.35)}
+.ghost.danger:hover{background:rgba(176,65,62,.08);border-color:#B0413E}
 
 .tt-wrap{display:block;max-width:1120px}
 
@@ -574,6 +576,8 @@ select.in{background-image:none}
         <div class="d1">Arquivo</div>
         <div class="d2">Tarefas cuja data já passou. Podes eliminá-las definitivamente.</div>
       </div>
+      <div class="spacer"></div>
+      <button class="ghost danger hidden" id="delAllPastBtn">Eliminar todos</button>
     </div>
   </section>
   <div id="pastList"></div>
@@ -1192,6 +1196,8 @@ function renderPast(){
     .map(t => ({ t, end: (t.repeat && t.repeat !== 'none') ? t.until : t.date }))
     .sort((a,b) => b.end.localeCompare(a.end) || toMin(b.t.time) - toMin(a.t.time));
 
+  document.getElementById('delAllPastBtn').classList.toggle('hidden', !list.length);
+
   if (!list.length){
     box.innerHTML = '<div class="bdgroup"><div class="empty" style="padding:36px 20px 44px"><b>Sem eventos passados</b>'+
       'As tarefas com data já ultrapassada aparecem aqui.</div></div>';
@@ -1592,6 +1598,14 @@ document.getElementById('fab').addEventListener('click', () =>
     section === 'tt' ? { kind:'routine', day:(new Date().getDay()) } : null));
 document.getElementById('addBdBtn').addEventListener('click', () =>
   openSheet(null, null, { kind:'birthday' }));
+document.getElementById('delAllPastBtn').addEventListener('click', () => {
+  const pastIds = new Set(tasks.filter(t => t.kind === 'task' && isPastEvent(t)).map(t => t.id));
+  if (!pastIds.size) return;
+  if (!confirm('Eliminar ' + pastIds.size + ' evento(s) passado(s)?\n\nEsta ação não pode ser desfeita.')) return;
+  tasks = tasks.filter(t => !pastIds.has(t.id));
+  persist();
+  renderPast();
+});
 document.querySelectorAll('#mainTabs .seg').forEach(b =>
   b.addEventListener('click', () => setSection(b.dataset.v)));
 
