@@ -1609,6 +1609,31 @@ document.getElementById('delAllPastBtn').addEventListener('click', () => {
 document.querySelectorAll('#mainTabs .seg').forEach(b =>
   b.addEventListener('click', () => setSection(b.dataset.v)));
 
+/* horário fixo: bloqueia o scroll a um só eixo por gesto (sem diagonais) */
+(function lockScrollAxis(el){
+  let axis = null, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  el.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    axis = null;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startLeft = el.scrollLeft;
+    startTop = el.scrollTop;
+  }, { passive: true });
+  el.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (!axis){
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (axis === 'x') el.scrollLeft = startLeft - dx;
+    else el.scrollTop = startTop - dy;
+    e.preventDefault();
+  }, { passive: false });
+})(document.getElementById('ttScroll'));
+
 function scrollToRelevant(){
   const items = tasksOn(selected);
   let min = items.length ? toMin(items[0].time) : (selected === ymd(new Date()) ? new Date().getHours()*60 : 8*60);
