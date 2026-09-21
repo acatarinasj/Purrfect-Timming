@@ -86,7 +86,10 @@ button{cursor:pointer;border:none;background:none}
   display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
 
 .mainnav{max-width:1120px;margin:0 auto;padding:16px 16px 0}
-.segs{display:inline-flex;gap:3px;background:var(--line-soft);border-radius:13px;padding:4px}
+.segs{display:flex;gap:3px;background:var(--line-soft);border-radius:13px;padding:4px;
+  max-width:100%;overflow-x:auto;scrollbar-width:none}
+.segs::-webkit-scrollbar{display:none}
+.segs .seg{flex:none}
 .seg{padding:8px 12px;border-radius:10px;font-family:Quicksand,sans-serif;font-weight:700;
   font-size:13px;color:var(--muted);transition:.14s}
 .seg[aria-pressed="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 4px rgba(117,69,79,.16)}
@@ -200,6 +203,8 @@ button{cursor:pointer;border:none;background:none}
 .bdrow .cd{font-size:12px;font-weight:600;color:var(--terra);background:rgba(200,111,83,.11);
   border-radius:999px;padding:4px 10px;white-space:nowrap}
 .bdrow .cd.soon{background:var(--terra);color:#fff}
+.pastdel{flex:none}
+.pastdel:hover{background:rgba(176,65,62,.12);color:#B0413E}
 .ttchips{display:flex;gap:6px;flex-wrap:wrap}
 .ttchips button{display:flex;align-items:center;gap:6px;padding:5px 11px 5px 6px;border-radius:999px;
   border:1.5px solid var(--line);background:var(--paper);font-size:13px;font-weight:500;transition:.13s}
@@ -485,6 +490,7 @@ select.in{background-image:none}
     <button class="seg" data-v="cal" aria-pressed="true">Calendário</button>
     <button class="seg" data-v="tt" aria-pressed="false">Horário fixo</button>
     <button class="seg" data-v="bd" aria-pressed="false">Aniversários</button>
+    <button class="seg" data-v="past" aria-pressed="false">Eventos passados</button>
   </div>
   <div class="peoplebar" id="peopleBar"></div>
 </nav>
@@ -559,6 +565,18 @@ select.in{background-image:none}
     Novo aniversário
   </button>
   <div id="bdList"></div>
+</section>
+
+<section class="wrap tt-wrap hidden" id="pastWrap">
+  <section class="card">
+    <div class="dayhead">
+      <div>
+        <div class="d1">Eventos passados</div>
+        <div class="d2">Tarefas cuja data já passou. Podes eliminá-las definitivamente.</div>
+      </div>
+    </div>
+  </section>
+  <div id="pastList"></div>
 </section>
 
 <button class="fab" id="fab">
@@ -1159,6 +1177,60 @@ function renderBirthdays(){
   });
 }
 
+/* ============ render: eventos passados ============ */
+function isPastEvent(t){
+  const today = ymd(new Date());
+  if (t.repeat && t.repeat !== 'none') return !!(t.until && t.until < today);
+  return t.date < today;
+}
+function renderPast(){
+  const box = document.getElementById('pastList');
+  box.innerHTML = '';
+
+  const list = tasks
+    .filter(t => t.kind === 'task' && isPastEvent(t))
+    .map(t => ({ t, end: (t.repeat && t.repeat !== 'none') ? t.until : t.date }))
+    .sort((a,b) => b.end.localeCompare(a.end) || toMin(b.t.time) - toMin(a.t.time));
+
+  if (!list.length){
+    box.innerHTML = '<div class="bdgroup"><div class="empty" style="padding:36px 20px 44px"><b>Sem eventos passados</b>'+
+      'As tarefas com data já ultrapassada aparecem aqui.</div></div>';
+    return;
+  }
+
+  const group = document.createElement('div');
+  group.className = 'bdgroup';
+  list.forEach(({t, end}) => {
+    const d = parseYmd(end);
+    const who = t.people.filter(p => P[p]);
+    const row = document.createElement('div');
+    row.className = 'bdrow';
+    row.style.cursor = 'pointer';
+    row.innerHTML =
+      '<span class="dt" style="color:'+spineOf(t.people)+'"><b>'+d.getDate()+'</b>'+
+        '<small style="color:inherit;opacity:.75">'+MONTHS[d.getMonth()]+'</small></span>'+
+      '<span class="who2"><b>'+esc(t.title)+'</b>'+
+        '<small>'+fmtLong(end)+' · '+t.time+(t.repeat && t.repeat!=='none' ? ' · repetia' : '')+
+        (who.length ? ' · '+who.map(p=>P[p].name).join(', ') : '')+'</small></span>'+
+      '<button class="x pastdel" title="Eliminar" aria-label="Eliminar '+esc(t.title)+'">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
+          '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'+
+          '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>'+
+        '</svg>'+
+      '</button>';
+    row.addEventListener('click', (e) => { if (!e.target.closest('.pastdel')) openSheet(t.id); });
+    row.querySelector('.pastdel').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm('Eliminar "'+t.title+'"?\n\nEsta ação não pode ser desfeita.')) return;
+      tasks = tasks.filter(x => x.id !== t.id);
+      persist();
+      renderPast();
+    });
+    group.appendChild(row);
+  });
+  box.appendChild(group);
+}
+
 function renderDayBand(){
   const band = document.getElementById('dayBand');
   const list = bdaysOn(selected);
@@ -1176,7 +1248,8 @@ function setSection(s){
   document.getElementById('calWrap').classList.toggle('hidden', s !== 'cal');
   document.getElementById('ttWrap').classList.toggle('hidden', s !== 'tt');
   document.getElementById('bdWrap').classList.toggle('hidden', s !== 'bd');
-  document.getElementById('fab').classList.toggle('hidden', s === 'bd');
+  document.getElementById('pastWrap').classList.toggle('hidden', s !== 'past');
+  document.getElementById('fab').classList.toggle('hidden', s === 'bd' || s === 'past');
   document.getElementById('fabLabel').textContent =
     s === 'tt' ? 'Novo bloco' : 'Nova tarefa';
   renderAll();
@@ -1271,9 +1344,10 @@ function renderAll(){
   const sd = parseYmd(selected);
   if (sd.getMonth() !== cursor.getMonth() || sd.getFullYear() !== cursor.getFullYear()) cursor = new Date(sd);
   renderPeople();
-  document.getElementById('peopleBar').classList.toggle('hidden', section === 'bd');
+  document.getElementById('peopleBar').classList.toggle('hidden', section === 'bd' || section === 'past');
   if (section === 'tt'){ renderTimetable(); return; }
   if (section === 'bd'){ renderBirthdays(); return; }
+  if (section === 'past'){ renderPast(); return; }
   renderMonth(); renderDayBand();
   if (view === 'week') renderWeek(); else renderDay();
   document.getElementById('emptyState').classList.toggle('hidden', view !== 'day' || tasksOn(selected).length > 0);
