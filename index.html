@@ -808,7 +808,7 @@ const isDone = (t,date) => !!(t.done && t.done[date]);
 function renderMonth(){
   const y = cursor.getFullYear(), m = cursor.getMonth();
   document.getElementById('monthLabel').textContent =
-    cursor.toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+    cursor.toLocaleDateString('pt-PT',{month:'long'}) + ' ' + y;
   const first = new Date(y,m,1);
   const offset = (first.getDay() + 6) % 7;          // semana começa à segunda
   const start = new Date(y, m, 1 - offset);
