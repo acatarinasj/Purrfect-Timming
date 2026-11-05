@@ -103,6 +103,7 @@ button{cursor:pointer;border:none;background:none}
 .mini{padding:12px 14px 16px}
 .mini-nav{display:flex;align-items:center;gap:6px;margin-bottom:10px}
 .mini-nav .m{flex:1;text-align:center;font-family:Quicksand,sans-serif;font-weight:700;font-size:15px;text-transform:capitalize}
+.visually-hidden-date{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .nav-b{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--ink-soft)}
 .nav-b:hover{background:var(--line-soft)}
 .nav-b svg{width:16px;height:16px}
@@ -115,6 +116,8 @@ button{cursor:pointer;border:none;background:none}
   color:var(--ink);transition:background .12s;position:relative;
 }
 .day:hover{background:var(--line-soft)}
+.day.striped{background:rgba(190,107,124,.16)}
+.day.striped:hover{background:rgba(190,107,124,.26)}
 .day.out{color:#CBBDBF}
 .day.today{box-shadow:inset 0 0 0 1.5px var(--terra);font-weight:600}
 .day.sel{background:var(--ink);color:var(--cream)}
@@ -504,6 +507,8 @@ select.in{background-image:none}
         <div class="mini-nav">
           <button class="nav-b" id="prevM" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
           <div class="m" id="monthLabel"></div>
+          <input type="date" id="stripeAnchorInput" class="visually-hidden-date" aria-label="Escolher em que semana começa a cor alternada" tabindex="-1">
+          <button class="nav-b" id="stripeAnchorBtn" title="Escolher em que semana começa a cor alternada" aria-label="Escolher em que semana começa a cor alternada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18"/><path d="M7 2v4M17 2v4"/><path d="M7 14h4"/></svg></button>
           <button class="nav-b" id="nextM" aria-label="Mês seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
         </div>
         <div class="dow"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
@@ -711,6 +716,7 @@ let tasks = [];
 let visible = new Set(PEOPLE.map(p=>p.id));
 let selected = ymd(new Date());
 let cursor = new Date();
+let stripeAnchor = localStorage.getItem('purrfect:stripeAnchor') || weekStartOf(ymd(new Date()));
 let editingId = null;
 let view = 'day';
 let section = 'cal';
@@ -841,8 +847,10 @@ function renderMonth(){
   for (let i=0;i<42;i++){
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
     const key = ymd(d);
+    const rowMonday = ymd(new Date(start.getFullYear(), start.getMonth(), start.getDate() + Math.floor(i/7)*7));
     const b = document.createElement('button');
-    b.className = 'day' + (d.getMonth()!==m ? ' out':'') + (key===today ? ' today':'') + (key===selected ? ' sel':'');
+    b.className = 'day' + (d.getMonth()!==m ? ' out':'') + (key===today ? ' today':'') + (key===selected ? ' sel':'') +
+      (isStripedWeek(rowMonday) ? ' striped':'');
     b.innerHTML = '<span>'+d.getDate()+'</span>';
     const dots = document.createElement('span');
     dots.className = 'dots';
@@ -907,6 +915,11 @@ function spineOf(people){
     P[p].color+' '+(i*100/who.length)+'% '+((i+1)*100/who.length)+'%').join(',') + ')';
 }
 function weekStartOf(date){ const d = parseYmd(date); return addDays(date, -((d.getDay()+6)%7)); }
+function isStripedWeek(mondayYmd){
+  const diffDays = Math.round((parseYmd(mondayYmd) - parseYmd(stripeAnchor)) / 86400000);
+  const diffWeeks = Math.round(diffDays / 7);
+  return ((diffWeeks % 2) + 2) % 2 === 0;
+}
 
 /* ============ render: semana ============ */
 function renderWeek(){
@@ -1589,6 +1602,19 @@ function toast(title, body){
 /* ============ navegação ============ */
 document.getElementById('prevM').addEventListener('click', () => { cursor.setMonth(cursor.getMonth()-1); renderMonth(); });
 document.getElementById('nextM').addEventListener('click', () => { cursor.setMonth(cursor.getMonth()+1); renderMonth(); });
+document.getElementById('stripeAnchorBtn').addEventListener('click', () => {
+  const input = document.getElementById('stripeAnchorInput');
+  input.value = stripeAnchor;
+  try { input.showPicker(); } catch(e) { input.focus(); input.click(); }
+});
+document.getElementById('stripeAnchorInput').addEventListener('change', (e) => {
+  const v = e.target.value;
+  if (!v) return;
+  stripeAnchor = weekStartOf(v);
+  localStorage.setItem('purrfect:stripeAnchor', stripeAnchor);
+  renderMonth();
+  toast('Cor alternada atualizada', 'As semanas a partir de ' + fmtLong(stripeAnchor) + ' ficam destacadas.');
+});
 document.querySelectorAll('#tabs .tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.v)));
 document.getElementById('goPrev').addEventListener('click', () => { selected = addDays(selected, view==='week' ? -7 : -1); renderAll(); if (view==='day') scrollToRelevant(); });
 document.getElementById('goNext').addEventListener('click', () => { selected = addDays(selected, view==='week' ?  7 :  1); renderAll(); if (view==='day') scrollToRelevant(); });
