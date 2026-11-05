@@ -507,8 +507,8 @@ select.in{background-image:none}
         <div class="mini-nav">
           <button class="nav-b" id="prevM" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
           <div class="m" id="monthLabel"></div>
-          <input type="date" id="stripeAnchorInput" class="visually-hidden-date" aria-label="Escolher em que semana começa a cor alternada" tabindex="-1">
-          <button class="nav-b" id="stripeAnchorBtn" title="Escolher em que semana começa a cor alternada" aria-label="Escolher em que semana começa a cor alternada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18"/><path d="M7 2v4M17 2v4"/><path d="M7 14h4"/></svg></button>
+          <input type="date" id="stripeAnchorInput" class="visually-hidden-date" aria-label="Escolher em que semana começa a cor alternada">
+          <label class="nav-b" for="stripeAnchorInput" title="Escolher em que semana começa a cor alternada"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18"/><path d="M7 2v4M17 2v4"/><path d="M7 14h4"/></svg></label>
           <button class="nav-b" id="nextM" aria-label="Mês seguinte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
         </div>
         <div class="dow"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
@@ -837,6 +837,7 @@ function renderMonth(){
   const y = cursor.getFullYear(), m = cursor.getMonth();
   document.getElementById('monthLabel').textContent =
     cursor.toLocaleDateString('pt-PT',{month:'long'}) + ' ' + y;
+  document.getElementById('stripeAnchorInput').value = stripeAnchor;
   const first = new Date(y,m,1);
   const offset = (first.getDay() + 6) % 7;          // semana começa à segunda
   const start = new Date(y, m, 1 - offset);
@@ -1602,11 +1603,6 @@ function toast(title, body){
 /* ============ navegação ============ */
 document.getElementById('prevM').addEventListener('click', () => { cursor.setMonth(cursor.getMonth()-1); renderMonth(); });
 document.getElementById('nextM').addEventListener('click', () => { cursor.setMonth(cursor.getMonth()+1); renderMonth(); });
-document.getElementById('stripeAnchorBtn').addEventListener('click', () => {
-  const input = document.getElementById('stripeAnchorInput');
-  input.value = stripeAnchor;
-  try { input.showPicker(); } catch(e) { input.focus(); input.click(); }
-});
 document.getElementById('stripeAnchorInput').addEventListener('change', (e) => {
   const v = e.target.value;
   if (!v) return;
