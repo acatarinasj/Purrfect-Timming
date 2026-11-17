@@ -1,10 +1,15 @@
+// ativa logo as novas versões do service worker
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) {
     data = { title: 'Purrfect Timing', body: event.data ? event.data.text() : '' };
   }
   const title = data.title || 'Purrfect Timing';
-  const options = { body: data.body || '', tag: data.tag || undefined };
+  const options = { body: data.body || '' };
+  if (data.tag) options.tag = data.tag;
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
