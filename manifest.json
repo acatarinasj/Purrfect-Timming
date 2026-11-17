@@ -1,0 +1,9 @@
+{
+  "name": "Purrfect Timing",
+  "short_name": "Purrfect Timing",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9DEC9",
+  "theme_color": "#E9DEC9"
+}
